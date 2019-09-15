@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate');
 
 // creando modelos con mongoose
-let placeShema = new mongoose.Schema({
+let placeSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true
@@ -17,6 +18,8 @@ let placeShema = new mongoose.Schema({
   closeHour: Number
 });
 
-let Place = mongoose.model('Place', placeShema);
+placeSchema.plugin(mongoosePaginate);
+
+let Place = mongoose.model('Place', placeSchema);
 
 module.exports = Place;

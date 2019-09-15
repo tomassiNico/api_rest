@@ -1,4 +1,16 @@
 const Place = require('../models/Place');
+const upload = require('../config/upload');
+const uploader = require('../models/Uploader');
+
+function find(req,res,next){
+  Place.findById(req.params.id)
+    .then(place =>{
+      req.place = place;
+      next();
+    }).catch(err=>{
+      next(err);
+    })
+}
 
 function index(req,res){
   //todos los lugares
@@ -11,26 +23,41 @@ function index(req,res){
     });
 }
 
-function create(req,res){
+function create(req,res,next){
   // crear nuevos lugares
   Place.create({
     title: req.body.title,
-    descrpition: req.body.descrpition,
+    description: req.body.description,
     acceptCreditCard: req.body.acceptCreditCard,
     openHour: req.body.openHour,
     closeHour: req.body.closeHour
   }).then(doc=>{
-    res.json(doc);
+    req.place = doc;
+    next();
   }).catch(err=>{
     console.log(err);
-    res.json(err);
+    next(err);
   });
 }
 
 function show(req,res){
   // busqueda individual
+  res.json(req.place);
+}
 
-  Place.findById(req.params.id)
+function update(req,res){
+  // actualizar datos de un lugar
+  let attributes = ["title","description","acceptCreditCard","openHour","closeHour"];
+  let placeParams = {};
+  attributes.forEach(attr=>{
+    if(Object.prototype.hasOwnProperty.call(req.body,attr)) {
+      placeParams[attr] = req.body[attr];
+    }
+  });
+
+  req.place = Object.assign(req.place, placeParams);
+
+  req.place.save()
     .then(doc=>{
       res.json(doc);
     }).catch(err=>{
@@ -39,36 +66,53 @@ function show(req,res){
     });
 }
 
-function update(req,res){
-  // actualizar datos de un lugar
-  let attributes = ["title","descrpition","acceptCreditCard","openHour","closeHour"];
-  let placeParams = {};
-  attributes.forEach(attr=>{
-    if(Object.prototype.hasOwnProperty.call(req.body,attr)) {
-      placeParams[attr] = req.body[attr];
-    }
-  });
-
-  Place.findByIdAndUpdate(req.params.id,placeParams, {new: true})
-  .then(doc=>{
-    res.json(doc);
-  }).catch(err=>{
-    console.log(err);
-    res.json(err);
-  });
-}
-
 function destroy(req,res){
   // eliminar un lugar
-  Place.findByIdAndRemove(req.params.id)
+  req.place.remove()
     .then(doc=>{
-      res.json({estado: "Recurso eliminado =O", data: doc})
+      res.json({estado: "Recurso eliminado =O"})
     }).catch(err=>{
       console.log(err);
       res.json(err);
     });
 }
 
+function multerMiddleware(){
+  // si se va arecibir solo un archivo se puede utilizar upload.single('nombre')
+  return upload.fields([
+    {name: 'avatar', maxCount: 1},
+    {name: 'cover', maxCount: 1}
+  ]);
+}
+
+function saveImage(req,res){
+  if(req.place){
+    const files = ['avatar','cover'];
+    const promises = [];
+
+    files.forEach(imageType=>{
+      if(req.files && req.files[imageType]){
+          const path = req.files[imageType][0].path;
+          promises.push(req.place.updateImage(path,imageType));
+        }
+    })
+
+    Promise.all(promises).then(results=>{
+        console.log(results);
+        res.json(req.place);
+    }).catch(err=>{
+      console.log(err);
+      res.json(err);
+    });
+
+  }else{
+    res.status(422).json({
+      error: req.error || 'No se pudo guardar el lugar'
+    });
+  }
+
+}
+
 module.exports = {
-  index, show, create, destroy, update
+  index, show, create, destroy, update, find, multerMiddleware, saveImage
 }

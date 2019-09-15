@@ -6,11 +6,13 @@ const placesController = require('../controllers/PlacesController');
 
 router.route('/')
   .get(placesController.index)
-  .post(placesController.create);
+  .post(placesController.multerMiddleware(),
+        placesController.create,
+        placesController.saveImage);
 
 router.route('/:id')
-  .get(placesController.show)
-  .put(placesController.update).
-  delete(placesController.destroy);
+  .get(placesController.find, placesController.show)
+  .put(placesController.find, placesController.update).
+  delete(placesController.find, placesController.destroy);
 
 module.exports = router;

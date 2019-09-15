@@ -70,6 +70,16 @@ app.put('/places/:id',(req,res)=>{
   })
 });
 
+app.delete('/places/:id',(req,res)=>{
+  Place.findByIdAndRemove(req.params.id)
+    .then(doc=>{
+      res.json({estado: "Recurso eliminado =O", data: doc})
+    }).catch(err=>{
+      console.log(err);
+      res.json(err);
+    });
+});
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));

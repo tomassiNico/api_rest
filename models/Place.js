@@ -35,11 +35,36 @@ placeSchema.methods.saveImageUrl = function(secureUrl,imageType){
 }
 
 placeSchema.pre('save', function(next){
-  this.slug = slugify(this.title);
-  next();
+  generateSlugAndContinue.call(this,0,next);
 });
 
 placeSchema.plugin(mongoosePaginate);
+
+placeSchema.statics.validateSlugCount = function(slug){
+  return Place.countDocuments({slug: slug}).then(count=>{
+    if (count > 0) return false;
+    return true;
+  }).catch(err=>{
+    console.log(err);
+  });
+};
+
+function generateSlugAndContinue(count,next){
+  this.slug = slugify(this.title);
+
+  if (count != 0)
+    this.slug = this.slug + "-" + count;
+
+  Place.validateSlugCount(this.slug).then(isValid=>{
+    if (!isValid)
+      return generateSlugAndContinue.call(this, count+1, next);
+
+  next();
+}).catch(err=>{
+  console.log(err);
+  next(err);
+});
+};
 
 let Place = mongoose.model('Place', placeSchema);
 

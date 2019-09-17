@@ -17,6 +17,20 @@ function create(req,res,next){
   });
 }
 
+function myPlaces(req,res){
+  User.findOne({'_id': req.user.id}).then(user=>{
+    user.places.then(places=>{
+      res.json(places);
+    }).catch(error=>{
+      console.log(error);
+      res.json(error);
+    })
+  }).catch(error=>{
+    console.log(error);
+    res.json(error);
+  })
+}
+
 module.exports = {
-  create
+  create, myPlaces
 }

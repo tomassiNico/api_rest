@@ -3,6 +3,8 @@ const mongoosePaginate = require('mongoose-paginate');
 const uploader = require('../models/Uploader');
 const slugify = require('../plugins/slugify');
 
+const Visit = require('./Visit');
+
 // creando modelos con mongoose
 let placeSchema = new mongoose.Schema({
   title: {
@@ -28,6 +30,10 @@ let placeSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   }
+});
+
+placeSchema.virtual('visits').get(function(){
+  return Visit.find({'_place': this.id}).sort('-id');
 });
 
 placeSchema.methods.updateImage = function(path,imageType){

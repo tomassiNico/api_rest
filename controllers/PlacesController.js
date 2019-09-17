@@ -29,6 +29,8 @@ function index(req,res){
 function create(req,res,next){
   // crear nuevos lugares
   const params = helpers.paramsBuilder(validParams, req.body);
+  console.log(req.user);
+  params['_user'] = req.user.id;
   Place.create(params).then(doc=>{
     req.place = doc;
     next();

@@ -4,6 +4,8 @@ var path = require('path');
 var logger = require('morgan');
 const jwtMiddleware = require('express-jwt');
 
+const App = require('./models/Application');
+
 const places = require('./routes/places');
 const users = require('./routes/users');
 const sessions = require('./routes/sessions');
@@ -11,6 +13,10 @@ const favorites = require('./routes/favorites');
 const visits = require('./routes/visits');
 const visitsPlaces = require('./routes/visitsPlaces');
 const applications = require('./routes/applications');
+
+const findAppBySecret = require('./middlewares/findAppBySecret');
+const findAppByApplicationId = require('./middlewares/findAppByApplicationId');
+const authApp = require('./middlewares/authApp');
 
 const db = require('./config/database');
 const secrets = require('./config/secrets');
@@ -24,6 +30,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(findAppBySecret);
+app.use(findAppByApplicationId);
+app.use(authApp);
+
 app.use(jwtMiddleware({secret: secrets.jwtSecret})
   .unless({path: ['/sessions', '/users'], method: 'GET'})
 );
@@ -36,6 +46,10 @@ app.use('/favorites', favorites);
 app.use('/visits', visits);
 app.use('/applications', applications);
 
+app.get('/demo', function(req,res){
+  App.remove({}).then(r => {res.json({})});
+})
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
@@ -44,6 +58,7 @@ app.use(function(req, res, next) {
 // error handler
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
+  console.log(err);
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 

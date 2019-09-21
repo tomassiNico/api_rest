@@ -1,15 +1,14 @@
 const paramsBuilder = require('./helpers').paramsBuilder;
 
-const FavoritePlace = require('../models/FavoritePlace');
-const User = require('../models/User');
+const Application = require('../models/Application');
 
-const validParams = ["_place"];
+const validParams = ["origin","name"];
 
-function find(req,res,next){
+function find(req,res, next){
   // encontrar un favorito
-  FavoritePlace.findById(req.params.id).then(fav=>{
-    req.mainObj = fav;
-    req.favorite = fav;
+  Application.findById(req.params.application_id).then(app=>{
+    req.application = app;
+    req.mainObj = app;
     next();
   }).catch(error=>{
     console.log(error);
@@ -19,22 +18,21 @@ function find(req,res,next){
 
 function index(req,res){
   // obtener los favoritos de un usuario
-  if (!req.fullUser) return res.json({});
-  req.fullUser.favorites.then(places=>{
-      res.json(places);
-    }).catch(error=>{
-      console.log(error);
-      res.json(error);
-    })
-
+  Application.paginate({},{ page: req.query.page || 1, limit: 8, sort: {'name': -1} })
+    .then(docs=>{
+      res.json(docs);
+    }).catch(err=>{
+      console.log(err);
+      res.json(err);
+    });
 }
 
 function create(req,res){
   // creacion de favorito
   let params = paramsBuilder(validParams, req.body);
-  params['_user'] = req.user.id;
-  FavoritePlace.create(params).then(doc=>{
-    res.json(doc);
+
+  Application.create(params).then(app=>{
+    res.json(app);
   }).catch(error=>{
     console.log(error)
     res.status(422).json({error});
@@ -43,7 +41,7 @@ function create(req,res){
 
 function destroy(req,res){
   // eliminar un favorito
-  req.favorite.remove().then(doc=>{
+  req.application.remove().then(app=>{
     res.json({});
   }).catch(error=>{
     console.log(error);

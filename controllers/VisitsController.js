@@ -5,9 +5,16 @@ const User = require('../models/User');
 
 const validParams = ["_place","reaction","observation"];
 
-function find(req,res){
+function find(req,res,next){
   // encontrar un favorito
-
+  Visit.findById(req.params.visit_id).then(visit=>{
+    req.mainObj = visit;
+    req.visit = visit;
+    next();
+  }).catch(error=>{
+    console.log(error);
+    next(error);
+  })
 }
 
 function index(req,res){

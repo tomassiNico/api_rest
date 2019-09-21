@@ -3,7 +3,7 @@ const randomstring = require('randomstring');
 
 function assignRandomAndUnique(app, field, next){
   const randomString = randomstring.generate(20);
-  
+
   let searchCriteria = {};
   searchCriteria[field] = randomString;
 
@@ -26,7 +26,7 @@ let applicationSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  origin: String,
+  origins: String,
   name: String
 });
 

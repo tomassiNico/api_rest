@@ -2,7 +2,7 @@ const paramsBuilder = require('./helpers').paramsBuilder;
 
 const Application = require('../models/Application');
 
-const validParams = ["origin","name"];
+const validParams = ["origins","name"];
 
 function find(req,res, next){
   // encontrar un favorito
